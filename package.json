@@ -1,0 +1,21 @@
+{
+  "name": "webgl2",
+  "module": "index.ts",
+  "devDependencies": {
+    "@types/bun": "latest",
+    "tailwindcss": "^3.4.13"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "type": "module",
+  "dependencies": {
+    "@tweakpane/core": "^2.0.4",
+    "@types/node": "^22.7.4",
+    "gl-matrix": "^3.4.3",
+    "serve": "^14.2.4",
+    "spectorjs": "^0.9.30",
+    "tweakpane": "^4.0.4",
+    "twgl.js": "^5.5.4"
+  }
+}
