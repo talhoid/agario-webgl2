@@ -3,23 +3,15 @@
 	// for the documentation about the tasks.json format
 	"version": "2.0.0",
 	"tasks": [
-        {
-            "label": "build",
-            "type": "process",
-            "command": "bun run build.ts",
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
-            "presentation": {
-                "echo": false,
-                "reveal": "never",
-                "focus": false,
-                "panel": "shared",
-                "showReuseMessage": false,
-                "clear": true
-            },
-            "problemMatcher": []
-        }
-    ]
+		{
+			"label": "build",
+			"type": "shell",
+			"command": "bun run build.ts",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"problemMatcher": []
+		}
+	]
 }

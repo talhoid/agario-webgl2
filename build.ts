@@ -1,41 +1,40 @@
-import glsl from                   "./glsl";
-import path from                     "path";
-import { inspect } from               "bun";
+import pico from "picocolors";
+import glsl from "./glsl";
+import path from "path";
 import { rm, cp, mkdir } from "fs/promises";
-import { exec } from        "child_process";
-import { existsSync } from             "fs";
+import { existsSync } from "fs";
+import { inspect } from "bun";
+import postcss from "postcss";
+import tailwind from "tailwindcss";
+// import autoprefixer from 'autoprefixer'
+import tailwindConfig from "./tailwind.config.js";
 
-const hex2truecolor = (hex: string) =>
-	`\x1b[38;2;${parseInt(hex.slice(1, 3), 16)};${parseInt(
-		hex.slice(3, 5),
-		16
-	)};${parseInt(hex.slice(5, 7), 16)}m`;
+const formatBytes = (bytes: number) => {
+	if (bytes === 0) return "0 B";
+	const units = ["B", "KB", "MB", "GB", "TB", "PB"];
+	const i = Math.floor(Math.log(bytes) / Math.log(1024));
+	const size = bytes / 1024 ** i;
+	return `${size.toFixed(2)} ${units[i]}`;
+};
 
+// Backup previous CSS output
 if (existsSync(path.resolve("./dist/output.css"))) {
-	await Bun.write(
-		Bun.file("./copy/output.css"),
-		Bun.file("./dist/output.css")
-	);
-	process.stdout.write(
-		`${hex2truecolor(
-			"#F59E0B"
-		)}[✓]\x1b[39m copied previous output.css to out\r\n`
-	);
+	await Bun.write("./copy/output.css", Bun.file("./dist/output.css"));
+	console.log(pico.yellow("[✓] Copied previous output.css to backup"));
 }
 
-await rm(path.resolve("./dist/"), {
+// Clean and prepare dist directory
+await rm(path.resolve("./dist/"), { recursive: true, force: true });
+await mkdir(path.resolve("./dist/"));
+await cp(path.resolve("./copy/"), path.resolve("./dist/"), {
 	recursive: true,
 	force: true,
 });
 
-await mkdir(path.resolve("./dist/"));
+const start = Date.now();
 
-await cp(path.resolve("./copy/"), path.resolve("./dist/"), {
-    recursive: true,
-	force: true,
-});
-
-const toBuild = [
+// Concurrent build processes
+const [jsBuild, cssBuild] = await Promise.all([
 	Bun.build({
 		entrypoints: ["./index.ts"],
 		outdir: "./dist",
@@ -43,62 +42,53 @@ const toBuild = [
 		sourcemap: "linked",
 		plugins: [glsl],
 	}),
+	Bun.file("./styles/main.css")
+		.text()
+		.then(async (inputCss) => {
+			const processor = postcss([tailwind(tailwindConfig)]);
+			const result = await processor.process(inputCss, {
+				from: "./styles/main.css",
+				to: "./dist/output.css",
+			});
+			await Bun.write("./dist/output.css", result.css);
+			return Bun.file("./dist/output.css").size;
+		}),
+]);
+
+// Handle build errors
+if (!jsBuild.success) {
+	console.error(pico.red("Build failed:"));
+	console.error(jsBuild.logs.map((log) => inspect(log)).join("\n"));
+	process.exit(1);
+}
+
+// Collect all build artifacts
+const allOutputs = [
+	...jsBuild.outputs,
+	{
+		path: path.resolve("./dist/output.css"),
+		size: cssBuild,
+		get: () => Bun.file("./dist/output.css"),
+	},
 ];
 
-const processTailwind = async () => {
-	return new Promise((resolve, reject) => {
-		exec(
-			"bun run tailwindcss -i ./styles/main.css -o ./dist/output.css",
-			(error, stdout, stderr) => {
-				if (error) {
-					reject(stderr || stdout);
-				} else {
-					resolve(stdout);
-				}
-			}
-		);
-	});
-};
+console.log(pico.magentaBright("\n✨ Build successful"));
 
-process.stdout.write(`${hex2truecolor("#F59E0B")}[…]\x1b[39m building`);
+// Display unified output tree
+allOutputs.forEach((output, index) => {
+	const prefix =
+		index === 0
+			? "  ┌─"
+			: index === allOutputs.length - 1
+			? "  └─"
+			: "  ├─";
 
-const buildPromises = toBuild.map((promise) =>
-	promise
-		.then((output) => {
-			process.stdout.write("\r\x1b[0K");
-			if (!output) {
-				process.stdout.write(
-					`${hex2truecolor("#EF4444")}[\u2A09]\x1b[39m unknown error`
-				);
-				process.exit(1);
-			}
-
-			if (!output.success) {
-				throw output.logs;
-			}
-			process.stdout.write(
-				`${hex2truecolor("#84CC16")}[✓]\x1b[39m scripting done!\n`
-			);
-		})
-		.catch((logs: (BuildMessage | ResolveMessage)[]) => {
-			process.stdout.write(`${hex2truecolor(
-				"#EF4444"
-			)}[\u2A09]\x1b[39m error(s) occurred
-    ${logs.map((log) => inspect(log))}`);
-			process.exit(1);
-		})
-);
-
-Promise.all(buildPromises).then(async () => {
-	try {
-		await processTailwind();
-		process.stdout.write(
-			`${hex2truecolor("#84CC16")}[✓]\x1b[39m css done!\n`
-		);
-	} catch (error) {
-		process.stdout.write(
-			`${hex2truecolor("#EF4444")}[\u2A09]\x1b[39m css error: ${error}`
-		);
-		process.exit(1);
-	}
+	const filePath = output.path.replace(`${process.cwd()}/dist/`, "");
+	console.log(
+		`${pico.dim(prefix)} ${filePath.padEnd(20)}`,
+		pico.gray(`[${formatBytes(output.size)}]`)
+	);
 });
+
+const end = Date.now();
+console.log(`\n⚡️ ${pico.blue(`Finished in ${end - start}ms`)}`);
