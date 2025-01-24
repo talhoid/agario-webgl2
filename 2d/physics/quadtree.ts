@@ -13,8 +13,8 @@ export class Quadtree<T extends Bounded> {
 	private midY: number = 0;
 	public readonly nodes: Quadtree<T>[] = new Array(4);
 	private objects: T[] = [];
-    public level: number;
-    private root: Quadtree<T>;
+	public level: number;
+	private root: Quadtree<T>;
 
 	// Cache management (root node only)
 	private objectCache: Map<T, Rectangle> = new Map();
@@ -28,7 +28,7 @@ export class Quadtree<T extends Bounded> {
 		root?: Quadtree<T>
 	) {
 		this.root = root || this;
-        this.level = level ?? 0;
+		this.level = level ?? 0;
 		this.updateMidpoints();
 	}
 

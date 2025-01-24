@@ -105,7 +105,7 @@ export class Cell implements Drawable, Shape {
 	}
 
 	public get size(): number {
-		return this.#radius;
+		return this.radius;
 	}
 
 	// Provider interface

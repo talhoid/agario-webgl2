@@ -13,17 +13,29 @@ import { random } from "./util/math";
 import { ConsumptionBehavior } from "./behaviors/consumption";
 import { memoize } from "./util/memo";
 import { Vector, VectorPool } from "./2d/geometry/vector";
+import type { Byte } from "./util/byte";
 
 const canvas = nonnull(document.querySelector("canvas"));
 const loader = nonnull(document.querySelector("div.loader"));
-const worldBounds = RectanglePool.acquire(0, 0, 25600, 25600);
+const worldBounds = RectanglePool.acquire(
+	0,
+	0,
+	14142.135623730952,
+	14142.135623730952
+);
+
+const randomColor: () => [Byte, Byte, Byte] = () => {
+	return [0xff, 0x07, (Math.random() * 256) >> 0].toSorted(
+		() => 0.5 - Math.random()
+	) as [Byte, Byte, Byte];
+};
 
 const game = new Game(canvas, worldBounds);
 
-const food: Entity[] = new Array(1250 * 5).fill(undefined).map(
+const food: Entity[] = new Array(1250 * 10).fill(undefined).map(
 	() =>
 		new Entity({
-			color: new RGBAColor(randomByte(), randomByte(), randomByte(), 255),
+			color: new RGBAColor(...randomColor(), 255),
 			position: worldBounds.randomPoint(),
 			shape: new Cell(1),
 		})
@@ -32,7 +44,7 @@ const food: Entity[] = new Array(1250 * 5).fill(undefined).map(
 const viruses: Entity[] = new Array(400).fill(undefined).map(
 	() =>
 		new Entity({
-			color: new RGBAColor(0, 240, 0, 255),
+			color: new RGBAColor(51, 255, 51, 255),
 			position: worldBounds.randomPoint(),
 			shape: new Cell(143, true),
 		})
@@ -49,7 +61,7 @@ const viruses: Entity[] = new Array(400).fill(undefined).map(
 // );
 
 const cell = new Entity({
-	color: new RGBAColor(randomByte(), randomByte(), randomByte(), 128),
+	color: new RGBAColor(...randomColor(), 128),
 	position: worldBounds.randomPoint(),
 	shape: new Cell(10),
 	physics: new VerletPhysics(),
@@ -93,8 +105,6 @@ document.addEventListener("visibilitychange", function () {
 
 game.setMainCharacter(cell);
 
-const MAX_VELOCITY = 1400;
-
 function main() {
 	const stats = new Stats();
 	document.body.appendChild(stats.container);
@@ -135,9 +145,7 @@ function main() {
 			const effectiveSpeed =
 				calculateSpeed(radius) * speedFactor * totalDamper;
 
-			cell.physics.velocity = direction
-				.scale(effectiveSpeed)
-				.limit(MAX_VELOCITY);
+			cell.physics.velocity = direction.scale(effectiveSpeed);
 		},
 		position: "begin",
 	});
