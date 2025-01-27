@@ -1,6 +1,5 @@
 import Stats from "./src/util/stats";
 import { nonnull } from "./src/util/nonnull";
-import { randomByte, randomInt } from "./src/util/random";
 import { RGBAColor } from "@/rendering/color";
 import { Entity } from "@/physics/entity";
 import { VerletPhysics } from "@/physics/physics";
@@ -9,10 +8,9 @@ import type { Coordinate } from "@/geometry/coordinate";
 import { RectanglePool } from "@/geometry/rectangle";
 import { Game } from "./game";
 // import { CellCollisionBehavior } from "./behaviors/collision";
-import { random } from "./src/util/math";
 import { ConsumptionBehavior } from "@/behaviors/consumption";
 import { memoize } from "./src/util/memo";
-import { Vector, VectorPool } from "@/geometry/vector";
+import { VectorPool } from "@/geometry/vector";
 import type { Byte } from "./src/util/byte";
 import type { GameProvider } from "@/providers/game";
 import { SplitBehavior } from "@/behaviors/split";

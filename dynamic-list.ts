@@ -6,7 +6,7 @@ type ListChangeEvent<T> =
 	| ReplaceEvent<T>
 	| ClearEvent<T>
 	| SpliceEvent<T>
-	| ReorderEvent<T>
+	| ReorderEvent
 	| FillEvent<T>
 	| CopyWithinEvent<T>
 	| SetEvent<T>;
@@ -42,7 +42,7 @@ interface SpliceEvent<T> {
 	items: T[];
 }
 
-interface ReorderEvent<T> {
+interface ReorderEvent {
 	type: "reorder";
 	method: "sort" | "reverse";
 }
@@ -301,7 +301,7 @@ export class DynamicList<T> extends EventEmitter {
 		}
 	}
 
-	private handleShift(result: T | undefined, prevState: T[]) {
+	private handleShift(result: T | undefined, _prevState: T[]) {
 		if (result !== undefined) {
 			this.emitChange({
 				type: "remove",
@@ -311,7 +311,7 @@ export class DynamicList<T> extends EventEmitter {
 		}
 	}
 
-	private handleUnshift(result: number, args: T[]) {
+	private handleUnshift(_result: number, args: T[]) {
 		this.emitChange({
 			type: "add",
 			items: args,
@@ -352,9 +352,9 @@ export class DynamicList<T> extends EventEmitter {
 	}
 
 	// Improved splice handler to emit remove events
-	private handleSplice(removed: T[], args: any[], prevState: T[]) {
+	private handleSplice(removed: T[], args: any[], _prevState: T[]) {
 		const start = args[0] ?? 0;
-		const deleteCount = args[1] ?? 0;
+		// const deleteCount = args[1] ?? 0;
 		const items = args.slice(2) as T[];
 
 		this.emitChange({
@@ -381,7 +381,7 @@ export class DynamicList<T> extends EventEmitter {
 		});
 	}
 
-	private handleFill(args: [T, number?, number?], prevState: T[]) {
+	private handleFill(args: [T, number?, number?], _prevState: T[]) {
 		const [value, start = 0, end = this._items.length] = args;
 		const modifiedIndices = Array.from(
 			{ length: end - start },
@@ -425,7 +425,7 @@ export class DynamicList<T> extends EventEmitter {
 	on(event: "replace", listener: (event: ReplaceEvent<T>) => void): this;
 	on(event: "clear", listener: (event: ClearEvent<T>) => void): this;
 	on(event: "splice", listener: (event: SpliceEvent<T>) => void): this;
-	on(event: "reorder", listener: (event: ReorderEvent<T>) => void): this;
+	on(event: "reorder", listener: (event: ReorderEvent) => void): this;
 	on(event: "fill", listener: (event: FillEvent<T>) => void): this;
 	on(
 		event: "copyWithin",

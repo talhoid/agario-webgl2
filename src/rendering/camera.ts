@@ -71,28 +71,28 @@ export class Camera {
 		this.zoom += (this.targetZoom - this.zoom) * alpha;
 	}
 
-	private enforceWorldBounds(): void {
-		const halfViewportWidth = this.viewport.width / this.zoom / 2;
-		const halfViewportHeight = this.viewport.height / this.zoom / 2;
+	// private enforceWorldBounds(): void {
+	// 	const halfViewportWidth = this.viewport.width / this.zoom / 2;
+	// 	const halfViewportHeight = this.viewport.height / this.zoom / 2;
 
-		this.position.x = Math.max(
-			this.worldBounds.x + halfViewportWidth,
-			Math.min(
-				this.worldBounds.x + this.worldBounds.width - halfViewportWidth,
-				this.position.x
-			)
-		);
+	// 	this.position.x = Math.max(
+	// 		this.worldBounds.x + halfViewportWidth,
+	// 		Math.min(
+	// 			this.worldBounds.x + this.worldBounds.width - halfViewportWidth,
+	// 			this.position.x
+	// 		)
+	// 	);
 
-		this.position.y = Math.max(
-			this.worldBounds.y + halfViewportHeight,
-			Math.min(
-				this.worldBounds.y +
-					this.worldBounds.height -
-					halfViewportHeight,
-				this.position.y
-			)
-		);
-	}
+	// 	this.position.y = Math.max(
+	// 		this.worldBounds.y + halfViewportHeight,
+	// 		Math.min(
+	// 			this.worldBounds.y +
+	// 				this.worldBounds.height -
+	// 				halfViewportHeight,
+	// 			this.position.y
+	// 		)
+	// 	);
+	// }
 
 	private updateVisibleBounds(): void {
 		const topLeft = this.screenToWorld({ x: 0, y: 0 });
@@ -217,21 +217,21 @@ export class Camera {
 
 	follow(targets: Entity[]): void {
 		if (this.overridden) return;
-		this.followWithPadding(targets, 0.2);
+		this.followWithPadding(targets, this.paddingRatio);
 	}
 
-	private zoomToFit(bounds: Rectangle): void {
-		const paddingX = bounds.width * this.paddingRatio;
-		const paddingY = bounds.height * this.paddingRatio;
+	// private zoomToFit(bounds: Rectangle): void {
+	// 	const paddingX = bounds.width * this.paddingRatio;
+	// 	const paddingY = bounds.height * this.paddingRatio;
 
-		const requiredWidth = bounds.width + paddingX * 2;
-		const requiredHeight = bounds.height + paddingY * 2;
+	// 	const requiredWidth = bounds.width + paddingX * 2;
+	// 	const requiredHeight = bounds.height + paddingY * 2;
 
-		const zoomX = this.viewport.width / requiredWidth;
-		const zoomY = this.viewport.height / requiredHeight;
+	// 	const zoomX = this.viewport.width / requiredWidth;
+	// 	const zoomY = this.viewport.height / requiredHeight;
 
-		this.zoomTo(Math.min(zoomX, zoomY));
-	}
+	// 	this.zoomTo(Math.min(zoomX, zoomY));
+	// }
 
 	private calculateWorldCenter(): Coordinate {
 		return {
