@@ -36,21 +36,23 @@ export class Renderer {
 	execute(commands: RenderCommand[], matrix: mat4): void {
 		const resolution = [this.canvas.width, this.canvas.height];
 		const gl = this.gl;
+		gl.clearColor(0, 0, 0, 0);
+		gl.clear(this.gl.COLOR_BUFFER_BIT);
 		for (const command of commands) {
 			this.validateCommand(command);
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 			gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+
 			command.setup?.(gl);
 
 			// Merge global uniforms with command-specific uniforms
+			gl.useProgram(command.programInfo.program);
 			twgl.setUniforms(command.programInfo, {
 				u_resolution: resolution,
 				u_matrix: matrix,
 				u_time: performance.now() / 1000,
 			});
 			twgl.setUniforms(command.programInfo, command.uniforms);
-
-			gl.useProgram(command.programInfo.program);
 
 			twgl.setBuffersAndAttributes(
 				gl,
@@ -71,11 +73,6 @@ export class Renderer {
 	}
 
 	private drawCommand(command: RenderCommand): void {
-
-		twgl.drawBufferInfo(
-			this.gl,
-			command.buffers,
-			command.drawType,
-		);
+		twgl.drawBufferInfo(this.gl, command.buffers, command.drawType);
 	}
 }

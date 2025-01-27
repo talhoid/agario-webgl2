@@ -1,6 +1,6 @@
 import * as twgl from "twgl.js";
-import pieFS from "./shaders/pie/fragment.glsl";
-import pieVS from "./shaders/pie/vertex.glsl";
+import pieFS from "@/shaders/pie/fragment.glsl";
+import pieVS from "@/shaders/pie/vertex.glsl";
 
 type Color = [number, number, number];
 
@@ -49,7 +49,7 @@ class Segment {
 		child.level = this.level + 1;
 		child.radius = child.nested ? this.radius * 0.9 : this.radius;
 		child.color = color;
-		child.name = name;
+		child.name = child.nested ? `${this.name}.${name}` : name;
 		child.parent = this;
 		this.children.push(child); // Add to children list
 		return child;
@@ -137,7 +137,7 @@ export class PieChart {
 		const total = this.segments.reduce((c, a) => a.value + c, 0);
 		const items = this.segments.map(
 			(segment) =>
-				`${segment.name}: ${segment.value.toFixed(3)}ms (${(
+				`${segment.name.split(".").at(-1)}: ${segment.value.toFixed(3)}ms (${(
 					(segment.value * 100) /
 					total
 				).toFixed(3)}%)`
@@ -285,12 +285,11 @@ export class PieChart {
 				continue;
 			}
 			const parent = segment.parent;
-			const parentStart =
-				parsedSegments.find((s) => s.label == parent.name)
-					?.startAngle || 0;
-			const parentEnd =
-				parsedSegments.find((s) => s.label == parent.name)?.endAngle ||
-				0;
+			const parentSegment = parsedSegments.find(
+				(s) => s.label == parent.name
+			);
+			const parentStart = parentSegment?.startAngle || 0;
+			const parentEnd = parentSegment?.endAngle || 0;
 			const parentRange = parentEnd - parentStart;
 
 			const portion = segment.value / parent.value;

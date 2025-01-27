@@ -15,7 +15,6 @@ export class Grid {
 	private readonly scale: number = 4;
 
 	constructor(private readonly gl: WebGL2RenderingContext) {
-
 		// Initialize WebGL resources
 		this.fbo = this.gl.createFramebuffer();
 		this.texture = this.gl.createTexture();
@@ -51,6 +50,10 @@ export class Grid {
 					gl.canvas.width * this.scale,
 					gl.canvas.height * this.scale
 				);
+
+				// Clear the framebuffer
+				gl.clearColor(0, 0, 0, 0); // Clear to transparent black
+				gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); // Clear color and depth buffers
 			},
 		};
 	}
